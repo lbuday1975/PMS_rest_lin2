@@ -2,7 +2,7 @@ import logging
 import re
 import subprocess as sp
 
-DEBUG = False
+DEBUG = True
 
 
 # Check connection to PMS server
@@ -59,10 +59,22 @@ def set_sys_var(la_sys_name, la_sys_var, la_value):
 
 def start_cmd(la_sys_name, la_proc_name, la_param):
     lv_rc = 999
-    lv_cmd = f'/opt/PMS/bin/pms_commander_server.sh -c START_COMMAND -SYS_NAME {la_sys_name} -VAR_NAME {la_sys_var} -VALUE {la_value}'
+
+    if la_param == '-' or la_param == "None":
+        lv_cmd_add = ""
+    else:
+        lv_cmd_add = f"-P \"{la_param}\""
+
+    lv_cmd = f'/opt/PMS/bin/pms_commander_server.sh -c START_COMMAND -SYS_NAME "{la_sys_name}" -t "{la_proc_name}" ' + lv_cmd_add
+    print("--> CMD: " + lv_cmd)
     lv_proc = sp.Popen([lv_cmd], stdout=sp.PIPE, shell=True)
     try:
         lv_out, lv_err = lv_proc.communicate()
+
+        for lv_line in lv_out.splitlines():
+            if DEBUG:
+                print(str(lv_line.decode()))
+
         lv_rc = str(lv_proc.poll())
     except sp.CalledProcessError as lv_ex:
         print("ERROR: " + lv_ex.output.decode())

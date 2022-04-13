@@ -8,7 +8,7 @@ auth = HTTPBasicAuth()
 
 @auth.get_password
 def get_password(username):
-    if username == 'miguel':
+    if username == 'miguel2':
         return 'python'
     return None
 
@@ -49,8 +49,26 @@ def get_var():
 @app.route("/api/start_cmd", methods=['POST'])
 @auth.login_required
 def api_start_cmd():
-    print("kokokokk")
-    return "Adom maar...."
+    lv_grc = "PMSRC:-1"
+    if request.method == 'POST':
+        ls_sys_name = request.args.get('sys_name')
+        ls_proc_name = request.args.get('proc_name')
+        ls_param = request.args.get('param')
+        if ls_param == None:
+            ls_param = "-"
+        lv_rc = pms_command.chk_connect()
+        if lv_rc == 0:
+            print(f'Act: start command: {ls_sys_name}-{ls_proc_name} with parameter: {ls_param}')
+            lv_grc = "PMSRC:" + str(pms_command.start_cmd(f'{ls_sys_name}', f'{ls_proc_name}', f'{ls_param}'))
+            print("--> RC : " + lv_grc)
+        else:
+            print("PMS server connection ERROR")
+            lv_grc = "PMSRC:3"
+    else:
+        print("GET method call : NO action")
+        lv_grc = "PMSRC:4"
+
+    return str(lv_grc)
 
 
 @app.route("/api/set_var", methods=['POST'])
@@ -70,6 +88,9 @@ def api_set_var():
         else:
             print("PMS server connection ERROR")
             lv_grc = "PMS server connection ERROR"
+    else:
+        print("GET method call : NO action")
+        lv_grc = "GET method call : NO action"
 
     return str(lv_grc)
 
